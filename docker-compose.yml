@@ -1,0 +1,33 @@
+services:
+  reproxy:
+    image: umputun/reproxy:master
+    container_name: reproxy
+    hostname: reproxy
+    ports:
+      - "80:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - LISTEN=0.0.0.0:8080
+      - DOCKER_ENABLED=true
+      - DOCKER_AUTO=true
+      - PLUGIN_ENABLED=true
+      - PLUGIN_LISTEN=0.0.0.0:8081
+
+  plugin-ip2location:
+    build: .
+    container_name: plugin-ip2location
+    hostname: plugin-ip2location
+    volumes:
+    - ./IP2LOCATION-LITE-DB1.BIN:/opt/db.bin
+    environment:
+      - LISTEN=plugin-ip2location:8000
+      - REPROXY=http://reproxy:8081
+      - DATABASE=/opt/db.bin
+      - IPSOURCE=X-Ip
+      - FIELDS=CF,CC
+
+  backend:
+    image: negasus/logserver
+    hostname: backend
+    container_name: backend
